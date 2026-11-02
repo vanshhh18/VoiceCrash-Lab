@@ -1,46 +1,146 @@
 # VoiceCrashLab
 
-VoiceCrashLab generates adversarial Indic voice-agent test suites, sends the original audio files to a configurable HTTP audio endpoint, and evaluates each response as soon as it arrives.
+**VoiceCrashLab** is an adversarial testing platform for AI voice
+agents. It evaluates how well an agent handles realistic customer
+conversations, especially when speech is unclear, noisy, emotional, or
+changes during the call.
 
-## Workflow
+Instead of checking only whether an agent can respond, VoiceCrashLab
+tests how reliably it understands the caller, follows the request, asks
+for missing information, and recovers when a conversation becomes
+difficult.
 
-1. **Connect Agent**: enter the endpoint URL, optional token, multipart audio field, response text field (or response-audio URL field), and timeout. The dashboard checks endpoint reachability. The first real audio request validates the endpoint's actual request/response contract.
-2. **Agent Info**: provide the agent role, business context, supported tasks, caller language, scenarios per track, and the TTS voice used to create caller recordings.
-3. **Generate Test Suite**: creates speech and reasoning scenarios, records their clean audio, generates six attacks for each speech recording, and builds a manifest. With five scenarios per track, the default manifest contains 5 speech clean + 5 reasoning clean + 30 attacked speech files = 40 audio tests.
-4. **Test Your Agent**: sends each manifest audio file to the configured endpoint. Each response is saved immediately and evaluated before the next test begins. A failure for one test does not erase results already collected.
-5. **Evaluation Summary**: review expected behaviour, caller input, agent response, evaluation checks, and an LLM-generated suggested fix for failed cases.
+## Key Features
 
-## Setup (Windows PowerShell)
+-   **Role-based scenario generation:** Generate customer-call scenarios
+    based on the selected agent role, business type, and language.
+-   **Noise robustness testing:** Test scenarios with traffic noise, fan
+    noise, crowd noise, audio dropouts, and customer mumbling.
+-   **LLM reasoning tests:** Challenge the agent with changing requests,
+    ambiguous instructions, interruptions, multi-step queries, and
+    emotional customer interactions.
+-   **Voice-based testing:** Generate caller audio for test scenarios
+    and evaluate the agent's spoken responses.
+-   **Automated evaluation:** Use an OpenAI model as an evaluator to
+    compare the agent's response with the expected behaviour.
+-   **Failure analysis:** Identify issues such as intent
+    misunderstanding and missing clarification, with failure details and
+    suggested fixes.
+-   **Results dashboard:** Review test outcomes and understand where the
+    voice agent needs improvement.
 
-```powershell
-cd path\to\VoiceCrashLab
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-Copy-Item .env.example .env
-```
+## How It Works
 
-Add `GROQ_API_KEY` to `.env`. Set `GROQ_SCENARIO_MODEL` and `GROQ_JUDGE_MODEL` to models available to your account.
+1.  **Configure the agent:** Select the agent's role, business type, and
+    language.
+2.  **Generate scenarios:** VoiceCrashLab creates 10 test scenarios:
+    -   5 easier scenarios focused on audio and noise robustness.
+    -   5 harder scenarios focused on LLM reasoning and conversation
+        handling.
+3.  **Generate caller recordings:** **Gnani Timbre** generates the audio
+    recordings for the customer scenarios.
+4.  **Run the voice-agent test:** The generated caller audio is played
+    to the AI voice agent, which processes the request and produces a
+    spoken response.
+5.  **Transcribe the agent response:** **Prisma** transcribes the
+    agent's spoken response into text for evaluation.
+6.  **Evaluate the response:** An **OpenAI model** acts as the judge. It
+    checks the response against the expected behaviour and identifies
+    whether the agent understood and handled the request correctly.
+7.  **Review the results:** The dashboard displays pass/fail outcomes,
+    failure categories, explanations, and suggested improvements.
 
-The attack generator prefers real background samples in `data/background_noise/` (`traffic.wav`, `fan.wav`, `crowd.wav`). If absent, it creates clearly labelled synthetic ambience proxies so the suite can still be generated locally.
+## Technologies Used
 
-Run the dashboard:
+  -----------------------------------------------------------------------
+  Component               Tool / Technology       Purpose
+  ----------------------- ----------------------- -----------------------
+  Scenario audio          Gnani Timbre            Generates spoken caller
+  generation                                      recordings
 
-```powershell
-streamlit run dashboard\dashboard_app.py
-```
+  Agent-response          Prisma                  Converts the agent's
+  transcription                                   spoken response into
+                                                  text
 
-## Endpoint contract
+  AI evaluation           OpenAI model            Judges the agent
+                                                  response against
+                                                  expected behaviour
 
-The target endpoint receives an HTTP `POST` with multipart form data. The uploaded file field is configurable. The endpoint may return raw audio bytes, JSON with a text response (configure `response_text_field`, including dotted paths such as `data.answer`), or JSON with a response-audio URL (configure `response_audio_url_field`). Authentication header and scheme are configurable too.
+  Application logic       Python                  Runs the testing and
+                                                  evaluation workflow
 
-Connection checking verifies reachability; it cannot prove the API accepts the exact audio schema until a test audio is sent. That first real request is handled and recorded as a per-test result.
+  Results interface       Dashboard               Displays test outcomes
+                                                  and failure analysis
+  -----------------------------------------------------------------------
 
-## Tests
+> This table lists the tools used in the current project workflow. Add
+> or update framework and infrastructure details to match the exact
+> versions in your repository.
 
-```powershell
-pytest -q
-```
+## Example Test Categories
 
-On Windows, install FFmpeg and ensure `ffmpeg.exe` is on `PATH`; pydub uses it to read/export MP3 files. VoiceCrashLab creates synthetic traffic/fan/crowd proxies if `data/background_noise/` does not contain real WAV samples. These proxies are reproducible test noise, not recordings of real environments.
+### Noise and Audio Robustness
+
+-   Traffic noise
+-   Fan noise
+-   Crowd noise
+-   Audio dropouts
+-   Mumbling or unclear speech
+
+### LLM Reasoning and Conversation Handling
+
+-   Changing customer requests
+-   Ambiguous instructions
+-   Interruptions and corrections
+-   Multi-step customer queries
+-   Emotional or frustrated callers
+
+## Evaluation Output
+
+For each test, VoiceCrashLab can present:
+
+-   Caller input
+-   Agent response
+-   Expected behaviour
+-   Pass/fail result
+-   Failure category
+-   Failure details
+-   Suggested fix
+
+Example failure categories include **Intent Misunderstanding** and
+**Missing Clarification**.
+
+## Demo Results
+
+In the demonstrated run, the agent passed **20 out of 40 tests** and
+failed **20**, resulting in a **50% pass rate**.
+
+These figures describe that particular demo run; results may change
+depending on the agent, scenarios, language, and audio conditions.
+
+## Getting Started
+
+The exact setup commands depend on the files and dependencies in your
+repository.
+
+1.  Clone the repository.
+2.  Create and activate a Python virtual environment.
+3.  Install the dependencies listed in `requirements.txt`, if present.
+4.  Configure the required API credentials using environment variables.
+5.  Run the application using the entry point provided in the
+    repository.
+
+Do not commit API keys or other secrets. Keep them in a local `.env`
+file and add that file to `.gitignore`.
+
+## Project Goal
+
+VoiceCrashLab aims to help developers discover weaknesses in AI voice
+agents before real customers encounter them. By combining realistic
+voice scenarios, speech transcription, and AI-based evaluation, it makes
+voice-agent testing more systematic and actionable.
+
+------------------------------------------------------------------------
+
+**VoiceCrashLab --- Don't just test whether AI works. Test how it
+fails.**
