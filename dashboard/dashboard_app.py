@@ -61,9 +61,8 @@ def generate_llm_fix(scenario: dict, evaluation: dict, caller_text: str,
     if not os.getenv("GROQ_API_KEY"):
         return {"suggested_fix": "Configure GROQ_API_KEY to generate an LLM remediation suggestion.", "example_response": ""}
     try:
-        from langchain_groq import ChatGroq
-        model = os.getenv("GROQ_JUDGE_MODEL", "openai/gpt-oss-120b")
-        llm = ChatGroq(model=model, temperature=0, api_key=os.getenv("GROQ_API_KEY"))
+        from evaluator.groq_judge import get_judge_llm
+        llm = get_judge_llm()
         prompt = f"""You are a voice-agent reliability engineer. Give a specific remediation based only on this evidence.
 Agent role: {context.get('agent_role', '')}
 Business context: {context.get('business_context', '')}
@@ -138,7 +137,7 @@ with st.form("agent_info_form"):
     tasks_text = st.text_area("Supported tasks (one per line)", placeholder="track order\nrequest refund\nreschedule delivery")
     language = st.selectbox("Caller language", ["Hinglish", "Hindi", "English"])
     scenario_count = st.number_input("Scenarios per track", min_value=1, max_value=20, value=5, step=1)
-    voice = st.text_input("TTS voice for generated caller audio", value=os.getenv("VOICECRASHLAB_TTS_VOICE", "hi-IN-SwaraNeural"))
+    voice = st.text_input("TTS voice for generated caller audio", value=os.getenv("VOICECRASHLAB_TTS_VOICE", "Pranav"))
     generate_clicked = st.form_submit_button("Generate Test Suite", type="primary")
 
 if generate_clicked:

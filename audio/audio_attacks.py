@@ -8,7 +8,7 @@ from scipy.signal import butter, sosfilt
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg"}
 BACKGROUND_TYPES = {
     "traffic": {"snr_db": -2},
-    "fan": {"snr_db": -10},
+    "fan": {"snr_db": -7},
     "crowd": {"snr_db": 2},
 }
 

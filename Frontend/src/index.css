@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+/*
+  VoiceCrashLab theme — unified lavender/violet outer + near-black canvas,
+  violet/blue accents (per update.md landing-page reference spec).
+  Semantic token names are stable so every component keeps working;
+  only the values are retokenized here.
+  Font: closest practical alternative to the unidentified reference font → Inter.
+*/
+@theme {
+  /* Outer / landing composition */
+  --color-outer: #f1eeff;
+  --color-lavender: #dcd5ff;
+  --color-violet-grad: #a394ff;
+
+  /* Surfaces — application canvas */
+  --color-void: #050507;
+  --color-charcoal: #0b0d14;
+  --color-panel: #111522;
+  --color-panel-raised: #191d2b;
+  --color-line: #292c40;
+
+  /* Accents — violet primary, blue secondary, purple highlight */
+  --color-signal: #8b7bff;
+  --color-signal-hover: #a698ff;
+  --color-electric: #5b8dff;
+  --color-highlight: #bd6cff;
+
+  /* Text */
+  --color-text-primary: #f6f6fa;
+  --color-text-muted: #a5a8ba;
+  --color-text-dim: #74798d;
+
+  /* Status — bright, high-saturation tones */
+  --color-success: #00ff9c;
+  --color-warn: #ffd60a;
+  --color-failure: #ff4d75;
+
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
+
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+body {
+  background-color: var(--color-void);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* ---- Utilities ---- */
+
+/* Panels: faint inner shadow */
+.shadow-custom {
+  box-shadow: inset 4px 0 4px 0 rgb(0 0 0 / 1%);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Active sidebar row: soft glow + violet gradient border overlay */
+.active-sidebar-item {
+  position: relative;
+  box-shadow:
+    0 0 5px 0 rgb(0 0 0 / 10%),
+    inset 0 0 4px 2px rgb(0 0 0 / 3%);
+}
+.active-sidebar-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    90deg,
+    rgb(139 123 255 / 0) 0%,
+    rgb(139 123 255 / 0.45) 50%,
+    rgb(139 123 255 / 0) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Small glass panel */
+.glass {
+  background: color-mix(in srgb, var(--color-panel) 82%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--color-line);
+}
+
+/* Shared form control styling */
+.input-base {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line);
+  background-color: var(--color-panel-raised);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 150ms;
+}
+.input-base:focus {
+  border-color: color-mix(in srgb, var(--color-signal) 60%, transparent);
+}
+.input-base::placeholder {
+  color: color-mix(in srgb, var(--color-text-muted) 60%, transparent);
+}
+
+/* Restrained glows for important active elements */
+.glow-signal {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-signal) 20%, transparent),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+}
+
+.glow-electric {
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-electric) 16%, transparent),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+}
+
+/* Subtle ambient gradients (very low alpha, violet/blue only) */
+.aurora {
+  background:
+    radial-gradient(50% 40% at 15% 0%, rgb(139 123 255 / 0.07), transparent 70%),
+    radial-gradient(42% 34% at 88% 6%, rgb(91 141 255 / 0.08), transparent 70%);
+}
+
+/* Landing outer: soft lavender/violet gradient */
+.aurora-outer {
+  background:
+    radial-gradient(60% 55% at 20% 15%, var(--color-lavender), transparent 75%),
+    radial-gradient(55% 50% at 85% 80%, var(--color-violet-grad), transparent 70%),
+    var(--color-outer);
+}
+
+/* Chart plot areas: subtle dot grid */
+.dashboard-dot-grid {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-text-primary) 12%, transparent) 0.0625rem,
+    transparent 0.0625rem
+  );
+  background-size: 1.5rem 1.5rem;
+}
+
+/* Progress bar grow animation */
+.dashboard-progress-fill {
+  transform-origin: left;
+  animation: dashboard-progress-grow 700ms ease-out both;
+}
+
+@keyframes dashboard-progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}

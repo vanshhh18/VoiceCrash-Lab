@@ -24,7 +24,7 @@ def _project_path(path):
 
 def run_pipeline(agent_role, business_context, supported_tasks,
                  language="Hinglish", scenario_count=5,
-                 voice="hi-IN-SwaraNeural"):
+                 voice="Pranav"):
     """Create 2*scenario_count scenarios and all available audio variants."""
     agent_role = str(agent_role).strip()
     business_context = str(business_context).strip()

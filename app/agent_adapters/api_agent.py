@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin
 import mimetypes
+import time
 
 import requests
 
@@ -72,6 +73,35 @@ class APIAgentAdapter(AgentAdapter):
             headers[self.auth_header] = value
         return headers
 
+    def _post_audio_with_retry(self, audio_path: Path, mime_type: str,
+                               attempts: int = 2, backoff_seconds: float = 2.0):
+        """POST the audio with a single retry on transient failures.
+
+        The file is re-opened for each attempt so the upload stream is fresh.
+        """
+        last_error: Exception | None = None
+        for attempt in range(1, attempts + 1):
+            with audio_path.open("rb") as audio_file:
+                try:
+                    response = requests.post(
+                        self.endpoint,
+                        headers=self._headers(),
+                        files={self.input_field: (audio_path.name, audio_file, mime_type)},
+                        timeout=self.timeout,
+                    )
+                except requests.RequestException as exc:
+                    last_error = exc
+                    if attempt < attempts:
+                        time.sleep(backoff_seconds)
+                    continue
+            if response.status_code >= 500 and attempt < attempts:
+                time.sleep(backoff_seconds)
+                continue
+            return response
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("Agent request failed without an error response.")
+
     def process_test(self, test_case: dict[str, Any]) -> dict[str, Any]:
         test_id = str(test_case["test_id"])
         audio_path = Path(test_case["audio_path"])
@@ -84,13 +114,7 @@ class APIAgentAdapter(AgentAdapter):
         RESPONSE_DIR.mkdir(parents=True, exist_ok=True)
         headers = self._headers()
 
-        with audio_path.open("rb") as audio_file:
-            response = requests.post(
-                self.endpoint,
-                headers=headers,
-                files={self.input_field: (audio_path.name, audio_file, mime_type)},
-                timeout=self.timeout,
-            )
+        response = self._post_audio_with_retry(audio_path, mime_type)
         response.raise_for_status()
         content_type = response.headers.get("Content-Type", "").lower()
 

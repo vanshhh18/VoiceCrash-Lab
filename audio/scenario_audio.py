@@ -1,23 +1,36 @@
 
-import asyncio
 import json
+import os
 import re
 from pathlib import Path
 
-import edge_tts
+from gnani.tts import GnaniTTSClient, AudioConfig
+from dotenv import load_dotenv
 
+load_dotenv()
 
-async def _record_scenario(text, output_file, voice):
+def _record_scenario(text, output_file, voice, client):
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    communicate = edge_tts.Communicate(text, voice)
-    await communicate.save(str(output_file))
+    result = client.synthesize(
+        text,
+        voice=voice,
+        model=os.getenv("TIMBRE_MODEL", "timbre-v2.5"),
+        language=os.getenv("TIMBRE_LANGUAGE", "hi-IN"),
+        speed=0.9,
+        audio_config=AudioConfig(
+            container="mp3",
+            sample_rate=48000,
+            bitrate="128k",
+        ),
+    )
+    output_file.write_bytes(result)
 
 
 def generate_scenario_audio(
     benchmark_path,
     output_dir=None,
-    voice="hi-IN-SwaraNeural",
+    voice="Kaveri",
     force=False
 ):
     benchmark_path = Path(benchmark_path)
@@ -51,6 +64,11 @@ def generate_scenario_audio(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    api_key = os.getenv("GNANI_API_KEY")
+    if not api_key:
+        raise ValueError("GNANI_API_KEY is missing. Add it to your .env file.")
+
+    client = GnaniTTSClient(api_key=api_key)
     results = []
 
     for index, scenario in enumerate(scenarios, start=1):
@@ -70,12 +88,11 @@ def generate_scenario_audio(
             continue
 
         try:
-            asyncio.run(
-                _record_scenario(
-                    caller_text.strip(),
-                    output_file,
-                    voice
-                )
+            _record_scenario(
+                caller_text.strip(),
+                output_file,
+                voice,
+                client,
             )
             print(f"Recorded: {output_file}")
             results.append(str(output_file))

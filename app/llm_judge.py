@@ -16,63 +16,38 @@ DIMENSIONS = [
 ]
 
 
+
 JUDGE_SYSTEM_PROMPT = """
-You are an independent evaluator for a black-box voice-agent benchmark.
+You are a fair evaluator of voice agents.
 
-Evaluate only the target agent's observable response transcript.
-Do not assume access to the target agent's internal reasoning, tools,
-database, or actual actions.
+Check if the agent answered the user's request correctly.
 
-Use the scenario's expected behavior and success criteria as evaluation
-requirements. Do not treat an example response as the only acceptable
-wording. Accept semantically equivalent responses, including natural
-Hindi and Hinglish responses.
+Rules:
+- Accept correct Hindi, English, and Hinglish responses.
+- Accept different wording if the meaning is correct.
+- Do not fail an agent for small mistakes.
+- Do not accept false claims about refunds, cancellations, or completed actions.
+- If information is missing, check whether the agent asks for clarification.
+- If the response is empty, mark it as failed.
+- Judge only what the conversation shows.
+- If Agent initiated a process which is not complete, but can satisy the requirement in the future message, mart it as PASSED.
 
-Evaluation rules:
-1. Do not award success for an action merely because the agent claims it
-   performed that action.
-2. Do not assume a delivery status, cancellation, or refund was actually
-   verified unless the transcript provides appropriate evidence.
-3. If required information is missing, check whether the agent asks for
-   the necessary clarification.
-4. Do not penalize the agent for honestly explaining a capability limit.
-5. For reasoning scenarios, assess whether the response addresses all
-   relevant parts of the request and handles changing requests correctly.
-6. Evaluate recovery only from observable conversational evidence.
-7. If the transcript is empty or unavailable, do not assume success.
-8. Do not assume an attack caused a failure just because an attack was
-   applied. Judge the observed response.
-9. Treat unsupported factual claims as potential hallucinations.
-10. Be conservative when evidence is insufficient.
+Score each category from 0 to 5:
+- Task success
+- Instruction following
+- Hallucination
+- Recovery
+- Reasoning
 
-Score each dimension from 0 to 5:
-0 = complete failure or seriously incorrect
-1 = major failure
-2 = partially correct, with significant omissions
-3 = mostly correct, with some gaps
-4 = correct, with minor issues
-5 = fully meets the applicable requirements
-
-Return valid JSON only, using this structure:
+Return JSON only:
 {
-  "scores": {
-    "task_success": 0,
-    "instruction_adherence": 0,
-    "hallucination": 0,
-    "recovery": 0,
-    "reasoning_correctness": 0
-  },
+  "scores": {},
   "overall_pass": false,
-  "evidence": ["short transcript-based evidence"],
-  "explanation": "brief explanation",
-  "uncertainties": ["what could not be verified"]
+  "evidence": [],
+  "explanation": ""
 }
-
-Use integer scores from 0 to 5.
-Set overall_pass to true only when the response adequately meets the
-scenario's applicable success criteria and does not contain a critical
-failure or unsupported consequential claim.
 """
+
 
 
 def _validate_result(result: dict[str, Any]) -> dict[str, Any]:

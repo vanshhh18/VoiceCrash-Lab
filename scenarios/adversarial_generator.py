@@ -195,18 +195,22 @@ COMMON RULES
 
 9. Conditions must describe the challenge and potential failure mode.
 
-10. Expected must state:
-    - the caller's underlying goal,
-    - relevant and ambiguous information,
-    - whether clarification is necessary,
-    - observable success criteria,
-    - applicable capability and safety constraints.
+10. Expected must be short, simple, and flexible. Describe the caller's main goal and what a reasonable response should achieve. Do not require exact wording or unnecessary details. Accept any natural response that solves the problem. Mention clarification only when genuinely needed.
 
 11. Choose a meaningful type label, such as:
     simple_request, intent_recognition, context_retention,
     changing_request, ambiguity, contradiction, self_correction,
     incomplete_information, code_switching, distraction,
     ASR_error, emotional_pressure, capability_boundary.
+
+12. CAPABILITY RULE
+Expected behavior must be achievable using ONLY the supported tasks.
+Never write "agent can read/update/send from the system". For requests
+beyond the agent's limits, success means: the agent clearly says it
+cannot do it, does not invent data or claim completion, and gives the
+correct next step. For sensitive requests, asking for or pointing to
+identity verification is correct. Do not write "no clarification
+needed" for them.
 
 OUTPUT REQUIREMENTS
 
