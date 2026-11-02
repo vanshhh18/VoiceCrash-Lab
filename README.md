@@ -73,9 +73,6 @@ difficult.
                                                   and failure analysis
   -----------------------------------------------------------------------
 
-> This table lists the tools used in the current project workflow. Add
-> or update framework and infrastructure details to match the exact
-> versions in your repository.
 
 ## Example Test Categories
 
